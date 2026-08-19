@@ -1,0 +1,40 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: تحميل الملفات
+        uses: actions/checkout@v4
+
+      - name: إعداد Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: فك مشروع Android
+        run: |
+          unzip -o AlaBzikrApp-Android-with*.zip -d android-project
+
+      - name: إعطاء صلاحية Gradle
+        run: |
+          chmod +x android-project/gradlew
+
+      - name: بناء APK
+        run: |
+          cd android-project
+          ./gradlew assembleDebug
+
+      - name: رفع APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlaBzikrApp-debug
+          path: android-project/**/build/outputs/apk/**/*.apk
