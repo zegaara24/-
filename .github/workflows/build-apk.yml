@@ -20,26 +20,52 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: فك ملف Android ZIP
+        shell: bash
+        run: |
+          echo "=== البحث عن ملف ZIP ==="
+
+          ZIP_FILE=$(find . -maxdepth 2 -type f -name "*.zip" | head -1)
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "لم يتم العثور على ملف ZIP"
+            find . -maxdepth 3 -type f
+            exit 1
+          fi
+
+          echo "تم العثور على:"
+          echo "$ZIP_FILE"
+
+          mkdir -p android-project
+          unzip -o "$ZIP_FILE" -d android-project
+
+          echo "=== محتويات Android ZIP ==="
+          find android-project -maxdepth 5 -type f | head -300
+
       - name: البحث عن مشروع Android
         shell: bash
         run: |
           echo "=== البحث عن settings.gradle ==="
 
-          PROJECT_DIR=$(find . -type f \( \
+          PROJECT_DIR=$(find android-project -type f \( \
             -name "settings.gradle" -o \
             -name "settings.gradle.kts" \
-          \) -not -path "./.git/*" | head -1 | xargs -r dirname)
+          \) -not -path "*/.git/*" | head -1 | xargs -r dirname)
 
           if [ -z "$PROJECT_DIR" ]; then
-            echo "لم يتم العثور على مشروع Android"
-            find . -maxdepth 5 -type f | head -300
+            echo "لم يتم العثور على مشروع Android داخل ZIP"
+            echo "الملفات الموجودة:"
+            find android-project -maxdepth 6 -type f | head -500
             exit 1
           fi
 
-          echo "تم العثور على المشروع:"
+          echo "تم العثور على مشروع Android:"
           echo "$PROJECT_DIR"
 
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: إعداد Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: بناء APK
         shell: bash
@@ -49,16 +75,12 @@ jobs:
           echo "=== ملفات المشروع ==="
           ls -la
 
-          echo "=== بناء APK ==="
-
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
             ./gradlew assembleDebug --stacktrace
           else
-            echo "لا يوجد gradlew داخل المشروع"
-            echo "سيتم استخدام Gradle الموجود في GitHub Actions"
-
-            gradle assembleDebug --stacktrace
+            echo "لا يوجد ملف gradlew"
+            exit 1
           fi
 
       - name: رفع APK
