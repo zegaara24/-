@@ -20,21 +20,43 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: البحث عن مشروع Android
+      - name: فك مشروع Android
         shell: bash
         run: |
-          echo "=== البحث عن مشروع Android ==="
+          echo "=== فك ملف مشروع Android ==="
 
-          PROJECT_DIR=$(find . -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit | xargs -r dirname)
+          ZIP_FILE=$(find . -maxdepth 2 -type f -name "*.zip" | head -1)
 
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "لم يتم العثور على مشروع Android"
-            echo "المجلدات والملفات الموجودة:"
-            find . -maxdepth 4 -type f | head -200
+          if [ -z "$ZIP_FILE" ]; then
+            echo "لم يتم العثور على ملف ZIP"
             exit 1
           fi
 
-          echo "تم العثور على المشروع في: $PROJECT_DIR"
+          echo "ملف ZIP: $ZIP_FILE"
+
+          mkdir -p android-project
+          unzip -o "$ZIP_FILE" -d android-project
+
+          echo "=== محتويات المشروع ==="
+          find android-project -maxdepth 4 -type f | head -200
+
+      - name: البحث عن مشروع Android
+        shell: bash
+        run: |
+          echo "=== البحث عن settings.gradle ==="
+
+          PROJECT_DIR=$(find android-project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit | xargs -r dirname)
+
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "لم يتم العثور على مشروع Android بعد فك ZIP"
+            echo "الملفات الموجودة:"
+            find android-project -maxdepth 6 -type f | head -300
+            exit 1
+          fi
+
+          echo "تم العثور على مشروع Android في:"
+          echo "$PROJECT_DIR"
+
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: إعداد AndroidX
@@ -42,6 +64,7 @@ jobs:
         run: |
           cd "$PROJECT_DIR"
 
+          touch gradle.properties
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
 
