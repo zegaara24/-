@@ -30,6 +30,12 @@ jobs:
           echo "=== ملفات المشروع ==="
           find android-project -maxdepth 4 -type f | head -200
 
+        - name: إعداد AndroidX
+        run: |
+          cd android-project
+          echo "android.useAndroidX=true" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+
       - name: بناء APK
         run: |
           cd android-project
