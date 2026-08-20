@@ -73,16 +73,10 @@ jobs:
 
           echo "=== بناء APK ==="
 
-          if [ ! -f "./gradlew" ]; then
-            echo "ملف gradlew غير موجود"
-            ls -la
-            exit 1
-          fi
+          echo "محتويات المشروع:"
+          ls -la
 
-          chmod +x ./gradlew
-
-          ./gradlew assembleDebug --stacktrace
-
+          gradle assembleDebug --stacktrace
       - name: رفع APK
         uses: actions/upload-artifact@v4
         with:
