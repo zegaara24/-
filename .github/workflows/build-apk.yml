@@ -24,14 +24,21 @@ jobs:
         run: |
           unzip -o AlaBzikrApp-Android-with*.zip -d android-project
 
-      - name: إعطاء صلاحية Gradle
-        run: |
-          chmod +x android-project/gradlew
+    - name: العثور على مشروع Android
+  run: |
+    GRADLEW=$(find android-project -name gradlew -type f | head -n 1)
+    if [ -z "$GRADLEW" ]; then
+      echo "لم يتم العثور على gradlew"
+      exit 1
+    fi
+    PROJECT_DIR=$(dirname "$GRADLEW")
+    echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+    chmod +x "$GRADLEW"
 
-      - name: بناء APK
-        run: |
-          cd android-project
-          ./gradlew assembleDebug
+- name: بناء APK
+  run: |
+    cd "$PROJECT_DIR"
+    ./gradlew assembleDebug
 
       - name: رفع APK
         uses: actions/upload-artifact@v4
