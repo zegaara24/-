@@ -20,18 +20,19 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: فك ملف Android ZIP
+      - name: البحث عن ملف Android ZIP
         shell: bash
         run: |
           echo "=== البحث عن ملف ZIP ==="
 
           ZIP_FILE=$(find . -maxdepth 2 -type f -name "*.zip" | head -1)
 
-          if [ -z "$ZIP_FILE" ]; then:
+          if [ -z "$ZIP_FILE" ]; then
             echo "لم يتم العثور على ملف ZIP"
             find . -maxdepth 3 -type f
             exit 1
           fi
+
           echo "تم العثور على:"
           echo "$ZIP_FILE"
 
@@ -41,7 +42,7 @@ jobs:
           echo "=== محتويات Android ZIP ==="
           find android-project -maxdepth 5 -type f | head -300
 
-       - name: البحث عن مشروع Android
+      - name: البحث عن مشروع Android
         shell: bash
         run: |
           echo "=== البحث عن settings.gradle ==="
