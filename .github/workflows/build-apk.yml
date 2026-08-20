@@ -68,7 +68,8 @@ jobs:
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
 
-            - name: إعداد Gradle
+            
+      - name: إعداد Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
@@ -79,18 +80,6 @@ jobs:
           cd "$PROJECT_DIR"
           chmod +x ./gradlew
           ./gradlew assembleDebug --stacktrace
-
-      - name: رفع APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: AlaBzikrApp-debug
-          path: ${{ env.PROJECT_DIR }}/**/build/outputs/apk/**/*.apk
-          if-no-files-found: error
-      
-        shell: bash
-        run: |
-          cd "$PROJECT_DIR"
-          gradle assembleDebug --stacktrace 
 
       - name: رفع APK
         uses: actions/upload-artifact@v4
