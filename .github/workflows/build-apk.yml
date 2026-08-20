@@ -27,12 +27,11 @@ jobs:
 
           ZIP_FILE=$(find . -maxdepth 2 -type f -name "*.zip" | head -1)
 
-          if [ -z "$ZIP_FILE" ]; then
+          if [ -z "$ZIP_FILE" ]; then:
             echo "لم يتم العثور على ملف ZIP"
             find . -maxdepth 3 -type f
             exit 1
           fi
-
           echo "تم العثور على:"
           echo "$ZIP_FILE"
 
@@ -42,7 +41,7 @@ jobs:
           echo "=== محتويات Android ZIP ==="
           find android-project -maxdepth 5 -type f | head -300
 
-      - name: البحث عن مشروع Android
+       - name: البحث عن مشروع Android
         shell: bash
         run: |
           echo "=== البحث عن settings.gradle ==="
@@ -54,13 +53,15 @@ jobs:
 
           if [ -z "$PROJECT_DIR" ]; then
             echo "لم يتم العثور على مشروع Android داخل ZIP"
-            echo "الملفات الموجودة:"
             find android-project -maxdepth 6 -type f | head -500
             exit 1
           fi
 
           echo "تم العثور على مشروع Android:"
           echo "$PROJECT_DIR"
+
+          echo "android.useAndroidX=true" >> "$PROJECT_DIR/gradle.properties"
+          echo "android.enableJetifier=true" >> "$PROJECT_DIR/gradle.properties"
 
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
@@ -82,10 +83,10 @@ jobs:
 
           echo "=== بناء APK ==="
           gradle assembleDebug --stacktrace
+
       - name: رفع APK
         uses: actions/upload-artifact@v4
         with:
           name: AlaBzikrApp-APK
-          path: |
-            ${{ env.PROJECT_DIR }}/**/build/outputs/apk/**/*.apk
+          path: ${{ env.PROJECT_DIR }}/**/build/outputs/apk/**/*.apk
           if-no-files-found: error
