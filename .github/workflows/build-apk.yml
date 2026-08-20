@@ -25,23 +25,15 @@ jobs:
           mkdir -p android-project
           unzip -o AlaBzikrApp-Android-with*.zip -d android-project
 
-      - name: فحص الملفات
+      - name: تحديد مشروع Android
         run: |
-          echo "=== الملفات الموجودة ==="
-          find android-project -maxdepth 5 -type f | head -200
-
-          echo "=== البحث عن gradlew ==="
-          find android-project -type f -name gradlew -print
-
-      - - name: بناء APK
-  run: |
-    cd "$PROJECT_DIR"
-    gradle assembleDebug
+          echo "=== ملفات المشروع ==="
+          find android-project -maxdepth 4 -type f | head -200
 
       - name: بناء APK
         run: |
-          cd "$PROJECT_DIR"
-          ./gradlew assembleDebug
+          cd android-project
+          gradle assembleDebug
 
       - name: رفع APK
         uses: actions/upload-artifact@v4
