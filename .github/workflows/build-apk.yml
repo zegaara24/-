@@ -66,6 +66,8 @@ jobs:
 
       - name: إعداد Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
 
       - name: بناء APK
         shell: bash
@@ -75,14 +77,11 @@ jobs:
           echo "=== ملفات المشروع ==="
           ls -la
 
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleDebug --stacktrace
-          else
-            echo "لا يوجد ملف gradlew"
-            exit 1
-          fi
+          echo "=== إصدار Gradle ==="
+          gradle --version
 
+          echo "=== بناء APK ==="
+          gradle assembleDebug --stacktrace
       - name: رفع APK
         uses: actions/upload-artifact@v4
         with:
