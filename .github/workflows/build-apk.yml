@@ -1,60 +1,13 @@
-name: Build Android APK
-
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: تحميل الملفات
-        uses: actions/checkout@v4
-
-      - name: إعداد Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: البحث عن مشروع Android
-        run: |
-          echo "=== البحث عن gradlew ==="
-          find . -type f -name gradlew -print
-
-          echo "=== البحث عن ملفات Gradle ==="
-          find . -type f \( -name build.gradle -o -name build.gradle.kts \) -print
-
       - name: تحديد مشروع Android
-        id: project
         run: |
-          PROJECT_DIR=$(find . -type f -name gradlew -print -quit | xargs -r dirname)
+          echo "=== البحث عن مشروع Android ==="
+          PROJECT_DIR=$(find android-project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit | xargs -r dirname)
 
           if [ -z "$PROJECT_DIR" ]; then
-            echo "لم يتم العثور على gradlew"
+            echo "لم يتم العثور على settings.gradle"
+            find android-project -maxdepth 5 -type f | head -200
             exit 1
           fi
 
-          echo "تم العثور على المشروع: $PROJECT_DIR"
+          echo "PROJECT_DIR=$PROJECT_DIR"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
-      - name: إعداد AndroidX
-        run: |
-          cd "$PROJECT_DIR"
-          echo "android.useAndroidX=true" >> gradle.properties
-          echo "android.enableJetifier=true" >> gradle.properties
-
-      - name: بناء APK
-        run: |
-          cd "$PROJECT_DIR"
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
-      - name: رفع APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: AlaBzikrApp-debug
-          path: '**/build/outputs/apk/**/*.apk'
