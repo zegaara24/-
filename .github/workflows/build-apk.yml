@@ -33,21 +33,10 @@ jobs:
           echo "=== البحث عن gradlew ==="
           find android-project -type f -name gradlew -print
 
-      - name: العثور على مشروع Android
-        run: |
-          GRADLEW=$(find android-project -type f -name gradlew | head -n 1)
-
-          if [ -z "$GRADLEW" ]; then
-            echo "لم يتم العثور على gradlew"
-            echo "محتويات المشروع:"
-            find android-project -maxdepth 5 -type f
-            exit 1
-          fi
-
-          PROJECT_DIR=$(dirname "$GRADLEW")
-
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          chmod +x "$GRADLEW"
+      - - name: بناء APK
+  run: |
+    cd "$PROJECT_DIR"
+    gradle assembleDebug
 
       - name: بناء APK
         run: |
