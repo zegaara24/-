@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,81 +19,48 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: فك مشروع Android
-        shell: bash
-        run: |
-          echo "=== فك ملف مشروع Android ==="
-
-          ZIP_FILE=$(find . -maxdepth 2 -type f -name "*.zip" | head -1)
-
-          if [ -z "$ZIP_FILE" ]; then
-            echo "لم يتم العثور على ملف ZIP"
-            exit 1
-          fi
-
-          echo "ملف ZIP: $ZIP_FILE"
-
-          mkdir -p android-project
-          unzip -o "$ZIP_FILE" -d android-project
-
-          echo "=== محتويات المشروع ==="
-          find android-project -maxdepth 4 -type f | head -200
 
       - name: البحث عن مشروع Android
-        shell: bashjobs:
-
-    steps:
-      - name: تحميل الملفات
-        uses: actions/checkout@v4
-
-      - name: إعداد Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+        shell: bash
         run: |
-          echo "=== البحث عن settings.gradle ==="
+          echo "=== البحث عن مشروع Android ==="
 
-          PROJECT_DIR=$(find android-project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit | xargs -r dirname)
+          PROJECT_DIR=$(find . -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -not -path "./.git/*" | head -1 | xargs -r dirname)
 
           if [ -z "$PROJECT_DIR" ]; then
-            echo "لم يتم العثور على مشروع Android بعد فك ZIP"
-            echo "الملفات الموجودة:"
-            find android-project -maxdepth 6 -type f | head -300
+            echo "لم يتم العثور على مشروع Android."
+            echo "محتويات المستودع:"
+            find . -maxdepth 3 -type f | head -200
             exit 1
           fi
 
-          echo "تم العثور على مشروع Android في:"
+          echo "تم العثور على المشروع في:"
           echo "$PROJECT_DIR"
 
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
-      - name: إعداد AndroidX
-        shell: bash
-        run: |
-          cd "$PROJECT_DIR"
-
-          touch gradle.properties
-          echo "android.useAndroidX=true" >> gradle.properties
-          echo "android.enableJetifier=true" >> gradle.properties
-
-            
       - name: إعداد Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
 
-      -- name: بناء APK
-  shell: bash
-  run: |
-    echo "مجلد المشروع: $PROJECT_DIR"
-    cd "$PROJECT_DIR"
-    chmod +x ./gradlew
-    ./gradlew assembleDebug --stacktrace
+      - name: بناء APK
+        shell: bash
+        run: |
+          cd "$PROJECT_DIR"
+
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --stacktrace
+          else
+            echo "لا يوجد ملف gradlew داخل مشروع Android."
+            exit 1
+          fi
 
       - name: رفع APK
         uses: actions/upload-artifact@v4
         with:
-          name: AlaBzikrApp-debug
-          path: ${{ env.PROJECT_DIR }}/**/build/outputs/apk/**/*.apk
+          name: Android-APK
+          path: |
+            ${{ env.PROJECT_DIR }}/**/build/outputs/apk/**/*.apk
           if-no-files-found: error
