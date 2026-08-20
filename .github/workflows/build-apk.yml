@@ -20,17 +20,12 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: فك ملف Android
-        run: |
-          mkdir -p android-project
-          unzip -o AlaBzikrApp-Android-with*.zip -d android-project
-
-      - name: تحديد مشروع Android
+      - name: فحص مشروع Android
         run: |
           echo "=== ملفات المشروع ==="
           find android-project -maxdepth 4 -type f | head -200
 
-        - name: إعداد AndroidX
+      - name: إعداد AndroidX
         run: |
           cd android-project
           echo "android.useAndroidX=true" >> gradle.properties
@@ -39,7 +34,8 @@ jobs:
       - name: بناء APK
         run: |
           cd android-project
-          gradle assembleDebug
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: رفع APK
         uses: actions/upload-artifact@v4
